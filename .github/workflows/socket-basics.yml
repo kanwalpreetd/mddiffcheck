@@ -40,10 +40,16 @@ jobs:
           go_sast_enabled: true
           secret_scanning_enabled: true
 
-          # --- disabled: dependency CVE + reachability (socket-scan.yml owns this) ---
+          # --- disabled: application dependency CVEs + reachability.
+          #     socket-scan.yml owns that surface. Note trivy_vuln_enabled covers
+          #     language-ecosystem dependencies; it is NOT container scanning. ---
           socket_tier_1_enabled: false
           trivy_vuln_enabled: false
-          trivy_image_scanning_disabled: true
+
+          # --- container image scanning: allowed, but this repo has no Dockerfile
+          #     or published image, so there is nothing for Trivy to pick up. Set
+          #     `dockerfiles:` / `container_images:` to give it targets. ---
+          trivy_image_scanning_disabled: false
 
           # --- disabled: PR integrations, since this runs on workflow_dispatch
           #     and there is no pull request to comment on or label ---
