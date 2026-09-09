@@ -1,6 +1,7 @@
 {
   "workspace": ".",
   "go_sast_enabled": true,
+  "go_disabled_rules": "go-command-execution",
   "secret_scanning_enabled": true,
   "console_tabular_enabled": true,
   "socket_tier_1_enabled": false,
