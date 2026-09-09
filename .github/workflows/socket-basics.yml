@@ -1,0 +1,51 @@
+# Socket Basics security scan for mddiffcheck.
+# Upstream: https://github.com/SocketDev/socket-basics
+#
+# This is SEPARATE from socket-scan.yml. The two do different jobs:
+#   socket-scan.yml   dependency CVEs + Tier 1 reachability (Socket/Coana)
+#   socket-basics.yml first-party code scanning — SAST + leaked secrets
+#
+# Deliberately does NO dependency CVE analysis and NO reachability analysis;
+# socket-scan.yml already covers that surface. The relevant switches are set
+# to false explicitly below rather than left to their defaults, so the intent
+# survives an upstream change of default.
+#
+# Scanners enabled here:
+#   go_sast_enabled          bundled SAST rules for Go (hardcoded credentials,
+#                            insecure binding, SSH, decompression bombs, ...)
+#   secret_scanning_enabled  TruffleHog credential detection
+#
+# Trigger: manual only while we evaluate the tool. Once the signal-to-noise is
+# understood, the natural home is `pull_request` so findings land as PR
+# comments on the diff (see pr_comment_enabled / pr_labels_enabled below).
+
+name: Socket Basics security scan
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  socket-basics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Run Socket Basics
+        uses: SocketDev/socket-basics@5b615c89d17764ab46de2f2de63122ca2ef6a4be # v3.1.0
+        with:
+          # --- enabled: first-party code scanning ---
+          go_sast_enabled: true
+          secret_scanning_enabled: true
+
+          # --- disabled: dependency CVE + reachability (socket-scan.yml owns this) ---
+          socket_tier_1_enabled: false
+          trivy_vuln_enabled: false
+          trivy_image_scanning_disabled: true
+
+          # --- disabled: PR integrations, since this runs on workflow_dispatch
+          #     and there is no pull request to comment on or label ---
+          pr_comment_enabled: false
+          pr_labels_enabled: false
